@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+virtual/
+.venv/
+env/
+ENV/
+
+# Environment variables (IMPORTANT - don't commit secrets!)
+.env
+*.env
+.env.local
+
+# Database
+*.sql
+*.db
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Logs
+*.log
+
+# Backups
+*.tar
+*.tar.gz
+*.zip

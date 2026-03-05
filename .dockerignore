@@ -1,0 +1,27 @@
+# Virtual environments
+venv/
+virtual/
+.venv/
+__pycache__/
+*.pyc
+
+# Git
+.git/
+.gitignore
+
+# Local env files (we'll pass these as environment variables)
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# Database backups
+*.sql
+
+# Docs
+docs/
+
+# OS files
+.DS_Store
+Thumbs.db
