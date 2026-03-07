@@ -339,7 +339,7 @@ class GameRoom:
     Manages a complete game room with multiple rounds.
     """
 
-    def __init__(self, code, max_players=MAX_PLAYERS):
+    def __init__(self, code, max_players=MAX_PLAYERS, manager=None):
         self.code = code
         self.max_players = max_players
         self.players = []
@@ -386,9 +386,11 @@ class GameRoom:
         return True
 
     def remove_player(self, user_id):
-        """Remove a player from the room."""
         self.players = [p for p in self.players if p.user_id != user_id]
-        return True
+
+        if not self.players and self.manager:
+            self.manager.delete_room(self.code)
+            return True
 
     def get_player(self, user_id):
         """Get a player by user_id."""
@@ -670,7 +672,7 @@ class RoomManager:
         if code in self.rooms:
             return None
 
-        self.rooms[code] = GameRoom(code)
+        self.rooms[code] = GameRoom(code, manager=self)
         return code
 
     def get_room(self, code):
