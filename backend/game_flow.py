@@ -265,7 +265,6 @@ class Round:
                 typed_message=typed_message,
                 is_picker=False
                 )
-
         # Calculate accuracy: compare typed vs ORIGINAL, only at blank positions
         entry.calculate_results(self.original_message, blank_positions)
         self.chain.append(entry)
