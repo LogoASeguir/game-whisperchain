@@ -235,7 +235,7 @@ class Round:
     Get the mutated message that a player should see.
     ALWAYS mutate from ORIGINAL message, not corrupted current_message.
     """
-    return mutate_message(self.original_message, player.signal_strength)i
+    return mutate_message(self.original_message, player.signal_strength)
 
 def submit_typing(self, player, typed_message):
     """
