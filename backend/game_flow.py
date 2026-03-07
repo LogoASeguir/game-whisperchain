@@ -13,15 +13,15 @@ from mutation_engine import mutate_message, calculate_accuracy, update_signal_st
 # CONSTANTS
 # ============================================
 WORD_BANK = [
-        "ninja", "taco", "penguin", "robot", "wizard", "pizza",
-        "dragon", "banana", "volcano", "unicorn", "mermaid", "rocket",
-        "zombie", "pirate", "rainbow", "tornado", "hamster", "disco",
-        "gorilla", "waffle", "spaceship", "dinosaur", "octopus", "burrito",
-        "cactus", "dolphin", "elephant", "flamingo", "giraffe", "hedgehog",
-        "iguana", "jellyfish", "kangaroo", "leopard", "mushroom", "narwhal",
-        "ostrich", "panda", "quokka", "raccoon", "squirrel", "turtle",
-        "umbrella", "vampire", "werewolf", "xylophone", "yeti", "zebra"
-        ]
+    "ninja", "taco", "penguin", "robot", "wizard", "pizza",
+    "dragon", "banana", "volcano", "unicorn", "mermaid", "rocket",
+    "zombie", "pirate", "rainbow", "tornado", "hamster", "disco",
+    "gorilla", "waffle", "spaceship", "dinosaur", "octopus", "burrito",
+    "cactus", "dolphin", "elephant", "flamingo", "giraffe", "hedgehog",
+    "iguana", "jellyfish", "kangaroo", "leopard", "mushroom", "narwhal",
+    "ostrich", "panda", "quokka", "raccoon", "squirrel", "turtle",
+    "umbrella", "vampire", "werewolf", "xylophone", "yeti", "zebra"
+]
 
 MIN_PLAYERS = 2
 MAX_PLAYERS = 10
@@ -99,12 +99,12 @@ class Player:
     def to_dict(self):
         """Convert to dictionary for JSON serialization."""
         return {
-                'user_id': self.user_id,
-                'username': self.username,
-                'signal': self.signal_strength,
-                'signal_strength': self.signal_strength,
-                'ready': self.ready
-                }
+            'user_id': self.user_id,
+            'username': self.username,
+            'signal': self.signal_strength,
+            'signal_strength': self.signal_strength,
+            'ready': self.ready
+        }
 
     def reset_for_round(self):
         """Reset player state for new round."""
@@ -140,7 +140,7 @@ class ChainEntry:
             self.signal_change = 0
             return
 
-        # FIX: Calculate accuracy only on blank positions
+        # Calculate accuracy only on blank positions
         self.accuracy = calculate_accuracy(original_message, self.typed_message, blank_positions)
 
         # Calculate signal change
@@ -154,17 +154,17 @@ class ChainEntry:
     def to_dict(self):
         """Convert to dictionary for JSON serialization."""
         return {
-                'player': self.player.username,
-                'user_id': self.player.user_id,
-                'message': self.typed_message,
-                'received': self.received_message,
-                'typed': self.typed_message,
-                'is_picker': self.is_picker,
-                'accuracy': round(self.accuracy, 1),
-                'signal_change': self.signal_change,
-                'signal': self.new_signal,
-                'new_signal': self.new_signal
-                }
+            'player': self.player.username,
+            'user_id': self.player.user_id,
+            'message': self.typed_message,
+            'received': self.received_message,
+            'typed': self.typed_message,
+            'is_picker': self.is_picker,
+            'accuracy': round(self.accuracy, 1),
+            'signal_change': self.signal_change,
+            'signal': self.new_signal,
+            'new_signal': self.new_signal
+        }
 
 
 # ============================================
@@ -218,11 +218,11 @@ class Round:
 
         # Add picker to chain
         entry = ChainEntry(
-                player=self.picker,
-                received_message=message,
-                typed_message=message,
-                is_picker=True
-                )
+            player=self.picker,
+            received_message=message,
+            typed_message=message,
+            is_picker=True
+        )
         self.chain.append(entry)
 
         # Move to next player
@@ -230,15 +230,16 @@ class Round:
         self.status = 'passing'
 
         return message
+
     def get_message_for_player(self, player):
         """
-    Get the mutated message that a player should see.
-    ALWAYS mutate from ORIGINAL message, not corrupted current_message.
-    """
-    return mutate_message(self.original_message, player.signal_strength)
+        Get the mutated message that a player should see.
+        ALWAYS mutate from ORIGINAL message, not corrupted current_message.
+        """
+        return mutate_message(self.original_message, player.signal_strength)
 
-def submit_typing(self, player, typed_message):
-    """
+    def submit_typing(self, player, typed_message):
+        """
         Player submits their typed message.
         Returns dict with results or None if not their turn.
         """
@@ -248,11 +249,10 @@ def submit_typing(self, player, typed_message):
         if self.current_player != player:
             return None
 
-        # What they received (mutated from current_message - for display only)
+        # What they received (mutated from ORIGINAL)
         received = self.get_message_for_player(player)
 
-        # Get blank positions by comparing original vs received
-        # A position is "blank" if received has '_' at that position
+        # Find which positions were blanks (underscores)
         blank_positions = set()
         for i, char in enumerate(received):
             if char == '_':
@@ -260,16 +260,17 @@ def submit_typing(self, player, typed_message):
 
         # Create chain entry
         entry = ChainEntry(
-                player=player,
-                received_message=received,
-                typed_message=typed_message,
-                is_picker=False
-                )
-        # Calculate accuracy: compare typed vs ORIGINAL, only at blank positions
+            player=player,
+            received_message=received,
+            typed_message=typed_message,
+            is_picker=False
+        )
+
+        # Calculate accuracy: compare typed vs ORIGINAL at blank positions only
         entry.calculate_results(self.original_message, blank_positions)
         self.chain.append(entry)
 
-        # Update current message for next player
+        # Update current message for next player (for display in chain history)
         self.current_message = typed_message
 
         # Move to next player
@@ -280,6 +281,7 @@ def submit_typing(self, player, typed_message):
             self.status = 'revealing'
 
         return entry.to_dict()
+
     def is_complete(self):
         """Check if all players have had their turn."""
         return self.current_turn >= len(self.players)
@@ -317,13 +319,13 @@ def submit_typing(self, player, typed_message):
     def to_dict(self):
         """Convert to dictionary for JSON serialization."""
         return {
-                'round': self.round_number,
-                'original': self.original_message,
-                'final': self.current_message,
-                'max_words': self.max_words,
-                'chain': [entry.to_dict() for entry in self.chain],
-                'votes': self.votes.copy()
-                }
+            'round': self.round_number,
+            'original': self.original_message,
+            'final': self.current_message,
+            'max_words': self.max_words,
+            'chain': [entry.to_dict() for entry in self.chain],
+            'votes': self.votes.copy()
+        }
 
 
 # ============================================
@@ -372,10 +374,10 @@ class GameRoom:
                 return False
 
         player = Player(
-                user_id=player_data['user_id'],
-                username=player_data['username'],
-                signal_strength=player_data.get('signal_strength', STARTING_SIGNAL)
-                )
+            user_id=player_data['user_id'],
+            username=player_data['username'],
+            signal_strength=player_data.get('signal_strength', STARTING_SIGNAL)
+        )
 
         self.players.append(player)
         return True
@@ -421,10 +423,10 @@ class GameRoom:
     def can_start(self):
         """Check if game can start (60%+ ready, 2+ players)."""
         return (
-                len(self.players) >= MIN_PLAYERS and
-                self.get_ready_percent() >= READY_THRESHOLD and
-                self.status == 'waiting'
-                )
+            len(self.players) >= MIN_PLAYERS and
+            self.get_ready_percent() >= READY_THRESHOLD and
+            self.status == 'waiting'
+        )
 
     def start_countdown(self):
         """Start the countdown to game start."""
@@ -458,7 +460,7 @@ class GameRoom:
         """
         self.current_round += 1
 
-        # FIX: Update total_rounds for infinite rounds
+        # Update total_rounds for infinite rounds
         if self.current_round > self.total_rounds:
             self.total_rounds = self.current_round
 
@@ -474,20 +476,20 @@ class GameRoom:
 
         # Create new round
         self.active_round = Round(
-                round_number=self.current_round,
-                players=rotated,
-                picker_index=picker_index
-                )
+            round_number=self.current_round,
+            players=rotated,
+            picker_index=picker_index
+        )
 
         return {
-                'round': self.current_round,
-                'total_rounds': self.total_rounds,
-                'starter': self.active_round.picker.username,
-                'starter_user_id': self.active_round.picker.user_id,
-                'max_words': self.active_round.max_words,
-                'players_order': self.active_round.get_players_order(),
-                'word_options': get_random_words(12)
-                }
+            'round': self.current_round,
+            'total_rounds': self.total_rounds,
+            'starter': self.active_round.picker.username,
+            'starter_user_id': self.active_round.picker.user_id,
+            'max_words': self.active_round.max_words,
+            'players_order': self.active_round.get_players_order(),
+            'word_options': get_random_words(12)
+        }
 
     def submit_words(self, user_id, words):
         """
@@ -515,12 +517,12 @@ class GameRoom:
             return None
 
         return {
-                'user_id': current.user_id,
-                'username': current.username,
-                'signal': current.signal_strength,
-                'message': self.active_round.get_message_for_player(current),
-                'original': self.active_round.current_message
-                }
+            'user_id': current.user_id,
+            'username': current.username,
+            'signal': current.signal_strength,
+            'message': self.active_round.get_message_for_player(current),
+            'original': self.active_round.current_message
+        }
 
     def submit_typing(self, user_id, typed_message):
         """
@@ -569,10 +571,10 @@ class GameRoom:
         all_voted = self.active_round.add_vote(player, vote)
 
         return all_voted, {
-                'yes': self.active_round.votes['yes'],
-                'no': self.active_round.votes['no'],
-                'total': len(self.players)
-                }
+            'yes': self.active_round.votes['yes'],
+            'no': self.active_round.votes['no'],
+            'total': len(self.players)
+        }
 
     def should_continue(self):
         """Check if game should continue to next round."""
@@ -599,10 +601,10 @@ class GameRoom:
 
         # Sort players by signal strength
         sorted_players = sorted(
-                self.players,
-                key=lambda p: p.signal_strength,
-                reverse=True
-                )
+            self.players,
+            key=lambda p: p.signal_strength,
+            reverse=True
+        )
 
         rankings = []
         for i, player in enumerate(sorted_players):
@@ -612,29 +614,29 @@ class GameRoom:
                 'username': player.username,
                 'signal': player.signal_strength,
                 'signal_strength': player.signal_strength
-                })
+            })
 
         return {
-                'rankings': rankings,
-                'rounds': self.rounds,
-                'total_rounds': self.current_round
-                }
+            'rankings': rankings,
+            'rounds': self.rounds,
+            'total_rounds': self.current_round
+        }
 
     def get_final_results(self):
         """Get final results for database storage."""
         return {
-                'room_code': self.code,
-                'num_players': len(self.players),
-                'rounds': self.rounds,
-                'player_results': [
-                    {
-                        'username': p.username,
-                        'signal': p.signal_strength,
-                        'signal_strength': p.signal_strength
-                        }
-                    for p in sorted(self.players, key=lambda x: x.signal_strength, reverse=True)
-                    ]
+            'room_code': self.code,
+            'num_players': len(self.players),
+            'rounds': self.rounds,
+            'player_results': [
+                {
+                    'username': p.username,
+                    'signal': p.signal_strength,
+                    'signal_strength': p.signal_strength
                 }
+                for p in sorted(self.players, key=lambda x: x.signal_strength, reverse=True)
+            ]
+        }
 
 
 # ============================================
@@ -689,7 +691,7 @@ class RoomManager:
                 'status': room.status,
                 'players': len(room.players),
                 'max_players': room.max_players
-                })
+            })
         return rooms_list
 
     def cleanup_empty_rooms(self):
@@ -770,8 +772,9 @@ if __name__ == "__main__":
             print(f"\n  {turn['username']}'s turn (signal: {turn['signal']}%)")
             print(f"    Sees: {turn['message']}")
 
-            # Simulate typing (just echo for test)
-            result = room.submit_typing(turn['user_id'], turn['message'].replace('_', 'x'))
+            # Simulate typing wrong letters at blanks
+            typed = turn['message'].replace('_', 'x')
+            result = room.submit_typing(turn['user_id'], typed)
             if result:
                 print(f"    Typed: {result['typed']}")
                 print(f"    Accuracy: {result['accuracy']}%")
