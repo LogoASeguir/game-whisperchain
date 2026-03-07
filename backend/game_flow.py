@@ -1,4 +1,3 @@
-# game_flow.py
 """
 WhisperChain Game Flow Engine
 Handles all game logic, room management, and player turns.
@@ -14,15 +13,15 @@ from mutation_engine import mutate_message, calculate_accuracy, update_signal_st
 # CONSTANTS
 # ============================================
 WORD_BANK = [
-        "ninja", "taco", "penguin", "robot", "wizard", "pizza",
-        "dragon", "banana", "volcano", "unicorn", "mermaid", "rocket",
-        "zombie", "pirate", "rainbow", "tornado", "hamster", "disco",
-        "gorilla", "waffle", "spaceship", "dinosaur", "octopus", "burrito",
-        "cactus", "dolphin", "elephant", "flamingo", "giraffe", "hedgehog",
-        "iguana", "jellyfish", "kangaroo", "leopard", "mushroom", "narwhal",
-        "ostrich", "panda", "quokka", "raccoon", "squirrel", "turtle",
-        "umbrella", "vampire", "werewolf", "xylophone", "yeti", "zebra"
-        ]
+    "ninja", "taco", "penguin", "robot", "wizard", "pizza",
+    "dragon", "banana", "volcano", "unicorn", "mermaid", "rocket",
+    "zombie", "pirate", "rainbow", "tornado", "hamster", "disco",
+    "gorilla", "waffle", "spaceship", "dinosaur", "octopus", "burrito",
+    "cactus", "dolphin", "elephant", "flamingo", "giraffe", "hedgehog",
+    "iguana", "jellyfish", "kangaroo", "leopard", "mushroom", "narwhal",
+    "ostrich", "panda", "quokka", "raccoon", "squirrel", "turtle",
+    "umbrella", "vampire", "werewolf", "xylophone", "yeti", "zebra"
+]
 
 MIN_PLAYERS = 2
 MAX_PLAYERS = 10
@@ -100,12 +99,12 @@ class Player:
     def to_dict(self):
         """Convert to dictionary for JSON serialization."""
         return {
-                'user_id': self.user_id,
-                'username': self.username,
-                'signal': self.signal_strength,
-                'signal_strength': self.signal_strength,
-                'ready': self.ready
-                }
+            'user_id': self.user_id,
+            'username': self.username,
+            'signal': self.signal_strength,
+            'signal_strength': self.signal_strength,
+            'ready': self.ready
+        }
 
     def reset_for_round(self):
         """Reset player state for new round."""
@@ -155,17 +154,17 @@ class ChainEntry:
     def to_dict(self):
         """Convert to dictionary for JSON serialization."""
         return {
-                'player': self.player.username,
-                'user_id': self.player.user_id,
-                'message': self.typed_message,
-                'received': self.received_message,
-                'typed': self.typed_message,
-                'is_picker': self.is_picker,
-                'accuracy': round(self.accuracy, 1),
-                'signal_change': self.signal_change,
-                'signal': self.new_signal,
-                'new_signal': self.new_signal
-                }
+            'player': self.player.username,
+            'user_id': self.player.user_id,
+            'message': self.typed_message,
+            'received': self.received_message,
+            'typed': self.typed_message,
+            'is_picker': self.is_picker,
+            'accuracy': round(self.accuracy, 1),
+            'signal_change': self.signal_change,
+            'signal': self.new_signal,
+            'new_signal': self.new_signal
+        }
 
 
 # ============================================
@@ -219,11 +218,11 @@ class Round:
 
         # Add picker to chain
         entry = ChainEntry(
-                player=self.picker,
-                received_message=message,
-                typed_message=message,
-                is_picker=True
-                )
+            player=self.picker,
+            received_message=message,
+            typed_message=message,
+            is_picker=True
+        )
         self.chain.append(entry)
 
         # Move to next player
@@ -255,11 +254,11 @@ class Round:
 
         # Create chain entry
         entry = ChainEntry(
-                player=player,
-                received_message=received,
-                typed_message=typed_message,
-                is_picker=False
-                )
+            player=player,
+            received_message=received,
+            typed_message=typed_message,
+            is_picker=False
+        )
         entry.calculate_results(self.current_message)
         self.chain.append(entry)
 
@@ -312,13 +311,13 @@ class Round:
     def to_dict(self):
         """Convert to dictionary for JSON serialization."""
         return {
-                'round': self.round_number,
-                'original': self.original_message,
-                'final': self.current_message,
-                'max_words': self.max_words,
-                'chain': [entry.to_dict() for entry in self.chain],
-                'votes': self.votes.copy()
-                }
+            'round': self.round_number,
+            'original': self.original_message,
+            'final': self.current_message,
+            'max_words': self.max_words,
+            'chain': [entry.to_dict() for entry in self.chain],
+            'votes': self.votes.copy()
+        }
 
 
 # ============================================
@@ -367,10 +366,10 @@ class GameRoom:
                 return False
 
         player = Player(
-                user_id=player_data['user_id'],
-                username=player_data['username'],
-                signal_strength=player_data.get('signal_strength', STARTING_SIGNAL)
-                )
+            user_id=player_data['user_id'],
+            username=player_data['username'],
+            signal_strength=player_data.get('signal_strength', STARTING_SIGNAL)
+        )
 
         self.players.append(player)
         return True
@@ -416,10 +415,10 @@ class GameRoom:
     def can_start(self):
         """Check if game can start (60%+ ready, 2+ players)."""
         return (
-                len(self.players) >= MIN_PLAYERS and
-                self.get_ready_percent() >= READY_THRESHOLD and
-                self.status == 'waiting'
-                )
+            len(self.players) >= MIN_PLAYERS and
+            self.get_ready_percent() >= READY_THRESHOLD and
+            self.status == 'waiting'
+        )
 
     def start_countdown(self):
         """Start the countdown to game start."""
@@ -445,28 +444,25 @@ class GameRoom:
         self.current_round = 0
 
         return True
+
     def start_round(self):
         """
-    Start a new round.
-    Returns: dict with round info for clients
-    """
-    self.current_round += 1
+        Start a new round.
+        Returns: dict with round info for clients
+        """
+        self.current_round += 1
 
-    # Update total_rounds to match (for display purposes)
-    if self.current_round > self.total_rounds:
-        self.total_rounds = self.current_round
+        # Reset players for new round
+        for p in self.players:
+            p.reset_for_round()
 
-    # Reset players for new round
-    for p in self.players:
-        p.reset_for_round()
+        # Rotate players so picker changes each round
+        picker_index = (self.current_round - 1) % len(self.players)
 
-    # Rotate players so picker changes each round
-    picker_index = (self.current_round - 1) % len(self.players)
+        # Create rotated player list (picker first)
+        rotated = self.players[picker_index:] + self.players[:picker_index]
 
-    # Create rotated player list (picker first)
-    rotated = self.players[picker_index:] + self.players[:picker_index]
-
-    # Create new round
+        # Create new round
         self.active_round = Round(
             round_number=self.current_round,
             players=rotated,
@@ -482,6 +478,20 @@ class GameRoom:
             'players_order': self.active_round.get_players_order(),
             'word_options': get_random_words(12)
         }
+
+    def submit_words(self, user_id, words):
+        """
+        Picker submits their chosen words.
+        Returns: message string or None if invalid
+        """
+        if not self.active_round:
+            return None
+
+        if self.active_round.picker.user_id != user_id:
+            return None
+
+        return self.active_round.submit_words(words)
+
     def get_turn_info(self):
         """
         Get current turn information.
@@ -495,12 +505,12 @@ class GameRoom:
             return None
 
         return {
-                'user_id': current.user_id,
-                'username': current.username,
-                'signal': current.signal_strength,
-                'message': self.active_round.get_message_for_player(current),
-                'original': self.active_round.current_message
-                }
+            'user_id': current.user_id,
+            'username': current.username,
+            'signal': current.signal_strength,
+            'message': self.active_round.get_message_for_player(current),
+            'original': self.active_round.current_message
+        }
 
     def submit_typing(self, user_id, typed_message):
         """
@@ -549,10 +559,10 @@ class GameRoom:
         all_voted = self.active_round.add_vote(player, vote)
 
         return all_voted, {
-                'yes': self.active_round.votes['yes'],
-                'no': self.active_round.votes['no'],
-                'total': len(self.players)
-                }
+            'yes': self.active_round.votes['yes'],
+            'no': self.active_round.votes['no'],
+            'total': len(self.players)
+        }
 
     def should_continue(self):
         """Check if game should continue to next round."""
@@ -579,10 +589,10 @@ class GameRoom:
 
         # Sort players by signal strength
         sorted_players = sorted(
-                self.players,
-                key=lambda p: p.signal_strength,
-                reverse=True
-                )
+            self.players,
+            key=lambda p: p.signal_strength,
+            reverse=True
+        )
 
         rankings = []
         for i, player in enumerate(sorted_players):
@@ -592,29 +602,29 @@ class GameRoom:
                 'username': player.username,
                 'signal': player.signal_strength,
                 'signal_strength': player.signal_strength
-                })
+            })
 
         return {
-                'rankings': rankings,
-                'rounds': self.rounds,
-                'total_rounds': self.current_round
-                }
+            'rankings': rankings,
+            'rounds': self.rounds,
+            'total_rounds': self.current_round
+        }
 
     def get_final_results(self):
         """Get final results for database storage."""
         return {
-                'room_code': self.code,
-                'num_players': len(self.players),
-                'rounds': self.rounds,
-                'player_results': [
-                    {
-                        'username': p.username,
-                        'signal': p.signal_strength,
-                        'signal_strength': p.signal_strength
-                        }
-                    for p in sorted(self.players, key=lambda x: x.signal_strength, reverse=True)
-                    ]
+            'room_code': self.code,
+            'num_players': len(self.players),
+            'rounds': self.rounds,
+            'player_results': [
+                {
+                    'username': p.username,
+                    'signal': p.signal_strength,
+                    'signal_strength': p.signal_strength
                 }
+                for p in sorted(self.players, key=lambda x: x.signal_strength, reverse=True)
+            ]
+        }
 
 
 # ============================================
@@ -669,7 +679,7 @@ class RoomManager:
                 'status': room.status,
                 'players': len(room.players),
                 'max_players': room.max_players
-                })
+            })
         return rooms_list
 
     def cleanup_empty_rooms(self):
