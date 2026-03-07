@@ -230,15 +230,15 @@ class Round:
         self.status = 'passing'
 
         return message
-
     def get_message_for_player(self, player):
         """
-        Get the mutated message that a player should see.
-        Based on their signal strength.
-        """
-        return mutate_message(self.current_message, player.signal_strength)
-    def submit_typing(self, player, typed_message):
-        """
+    Get the mutated message that a player should see.
+    ALWAYS mutate from ORIGINAL message, not corrupted current_message.
+    """
+    return mutate_message(self.original_message, player.signal_strength)i
+
+def submit_typing(self, player, typed_message):
+    """
         Player submits their typed message.
         Returns dict with results or None if not their turn.
         """
