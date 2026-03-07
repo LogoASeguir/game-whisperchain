@@ -11,7 +11,6 @@ var API_BASE = '';
    GLOBAL STATE
    ============================================ */
 var socket = null;
-var gameEndTimeout = null;  // NEW: Safety timeout tracker
 var gameState = {
   roomCode: "",
   players: [],
@@ -43,11 +42,7 @@ function connectSocket() {
 
   socket = io(window.location.origin, {
     transports: ['polling', 'websocket'],
-    upgrade: true,
-    reconnection: true,
-    reconnectionDelay: 1000,
-    reconnectionAttempts: 5,
-    timeout: 20000
+    upgrade: true
   });
 
   socket.on('connect', function() {
@@ -59,37 +54,17 @@ function connectSocket() {
     if (userId) {
       socket.emit('auth', { user_id: userId });
     } else {
-      console.log("[SOCKET] No user_id, redirecting to login");
       window.location.href = '/';
     }
   });
 
-  socket.on('disconnect', function(reason) {
-    console.log("[SOCKET] Disconnected:", reason);
-    
-    // If server kicked us out, redirect to lobby
-    if (reason === 'io server disconnect') {
-      console.log("[SOCKET] Server disconnect, redirecting to lobby");
-      setTimeout(function() {
-        sessionStorage.removeItem('current_room');
-        window.location.href = '/lobby.html';
-      }, 2000);
-    }
-  });
-
-  socket.on('connect_error', function(error) {
-    console.error("[SOCKET] Connection error:", error);
+  socket.on('disconnect', function() {
+    console.log("[SOCKET] Disconnected");
   });
 
   socket.on('error', function(data) {
-    console.error("[SOCKET] Error:", data.msg || data);
-    alert("Connection error: " + (data.msg || "Something went wrong"));
-    
-    // Redirect to lobby after error
-    setTimeout(function() {
-      sessionStorage.removeItem('current_room');
-      window.location.href = '/lobby.html';
-    }, 2000);
+    console.error("[SOCKET] Error:", data.msg);
+    alert("Error: " + data.msg);
   });
 
   socket.on('authed', function(data) {
@@ -126,7 +101,6 @@ function connectSocket() {
     console.log("[SOCKET] Left game:", data.message);
 
     clearTimer();
-    clearGameEndTimeout();  // NEW: Clear safety timeout
 
     sessionStorage.removeItem('current_room');
 
@@ -135,12 +109,23 @@ function connectSocket() {
     }, 100);
   });
 
-  // NEW: Enhanced room_reset handler
+  socket.on('show_final_scoreboard', function(data) {
+    console.log("[SOCKET] Show final scoreboard, then:", data.then);
+
+    clearTimer();
+
+    showScene('gameover');
+
+    setTimeout(function() {
+      sessionStorage.removeItem('current_room');
+      window.location.href = '/lobby.html';
+    }, 3000);
+  });
+
   socket.on('room_reset', function(data) {
     console.log("[SOCKET] Room reset to waiting state");
 
     clearTimer();
-    clearGameEndTimeout();  // NEW: Clear safety timeout
 
     gameState.roomCode = data.code;
     gameState.players = data.players;
@@ -252,38 +237,15 @@ function connectSocket() {
     if (el) el.textContent = data.votes + "/" + data.total + " voted";
   });
 
-  // NEW: Enhanced game_end handler with safety timeout
   socket.on('game_end', function(data) {
     console.log("[SOCKET] Game end!");
     console.log("[SOCKET] game_id:", data.game_id);
-    console.log("[SOCKET] Rankings:", data.rankings);
-
-    // Clear any existing timeout
-    clearGameEndTimeout();
 
     gameState.isMyTurn = false;
     updateMySignalFromRankings(data.rankings);
 
     showGameOver(data.rankings, data.rounds, data.num_players);
-
-    // NEW: Safety timeout - auto-redirect if user doesn't interact
-    gameEndTimeout = setTimeout(function() {
-      console.log("[SAFETY] Auto-redirecting to lobby after 30 seconds");
-      sessionStorage.removeItem('current_room');
-      window.location.href = '/lobby.html';
-    }, 30000);  // 30 seconds
   });
-}
-
-/* ============================================
-   SAFETY HELPERS
-   ============================================ */
-function clearGameEndTimeout() {
-  if (gameEndTimeout) {
-    clearTimeout(gameEndTimeout);
-    gameEndTimeout = null;
-    console.log("[SAFETY] Cleared game end timeout");
-  }
 }
 
 /* ============================================
@@ -941,7 +903,6 @@ function leaveGame() {
   console.log("[ACTION] Player chose to LEAVE");
 
   clearTimer();
-  clearGameEndTimeout();  // NEW: Clear safety timeout when leaving
 
   var modal = document.getElementById('stay-modal');
   if (modal) modal.classList.add('hidden');
@@ -1140,7 +1101,7 @@ function loadHistory() {
                 chainParts.push('"' + msg + '"');
               }
               html += chainParts.join(' → ');
-          } else {
+            } else {
               html += '"' + (round.original || '?') + '" → "' + (round.final || '?') + '"';
             }
 
@@ -1149,7 +1110,7 @@ function loadHistory() {
 
           html += '</div>';
         } else {
-          html += '<div class="history-rounds"><p class="no-rounds">No round data</p></div>';
+          html += '<div class="history-rounds"><p class="no-rounds">No round data</p></';
         }
 
         html += '</div>';
@@ -1159,7 +1120,7 @@ function loadHistory() {
     })
     .catch(function(err) {
       console.error("[HISTORY] Error:", err);
-      list.innerHTML = '<p>Error loading history</p>
+      list.innerHTML = '<p>Error loading history</p>';
       if (noHistory) noHistory.classList.remove('hidden');
     });
 }
@@ -1169,7 +1130,6 @@ function loadHistory() {
    ============================================ */
 function goToLobby() {
   clearTimer();
-  clearGameEndTimeout();  // NEW: Clear safety timeout
 
   if (socket && socket.connected) {
     socket.emit('leave', {});
