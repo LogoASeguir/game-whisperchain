@@ -1214,3 +1214,40 @@ document.addEventListener('DOMContentLoaded', function() {
     loadHistory();
   }
 });
+
+/* ============================================
+   WORD BANK
+============================================ */
+const WORD_BANK = [
+  "ninja", "taco", "penguin", "robot", "wizard", "pizza",
+  "dragon", "banana", "volcano", "unicorn", "mermaid", "rocket",
+  "zombie", "pirate", "rainbow", "tornado", "hamster", "disco",
+  "gorilla", "waffle", "spaceship", "dinosaur", "octopus", "burrito",
+  "cactus", "dolphin", "elephant", "flamingo", "giraffe", "hedgehog",
+  "iguana", "jellyfish", "kangaroo", "leopard", "mushroom", "narwhal",
+  "ostrich", "panda", "quokka", "raccoon", "squirrel", "turtle",
+  "umbrella", "vampire", "werewolf", "xylophone", "yeti", "zebra"
+];
+
+function renderWordBank(words) {
+  var container = document.getElementById('word-bank-background');
+  if (!container) return;
+
+  // Shuffle words for variety
+  var shuffled = words.slice();
+  for (var i = shuffled.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  var html = '';
+  for (var i = 0; i < shuffled.length; i++) {
+    html += '<span class="word" style="--i:' + i + '">' + shuffled[i] + '</span>';
+  }
+
+  container.innerHTML = html;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  renderWordBank(WORD_BANK);
+});

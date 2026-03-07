@@ -7,47 +7,43 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div id="word-bank-background"></div>
 
-<div class="container-wide">
-  <div class="title-display">
-    <h1>WHISPERCHAIN</h1>
-  </div>
+  <div class="container-wide">
+    <div class="title-display">
+      <h1>WHISPERCHAIN</h1>
+    </div>
 
-  <div class="user-info">
-    <span class="username">Guest</span>
-    <span class="signal">70%</span>
-  </div>
+    <div class="user-info">
+      <span class="username">Guest</span>
+      <span class="signal">70%</span>
+    </div>
 
-  <div class="content-box">
-    <div class="lobby-header">
-      <h2>Game Rooms</h2>
-      <div class="lobby-actions">
-        <button class="btn btn-small btn-secondary" onclick="goToHistory()">
-          HISTORY
-        </button>
-        <button class="btn btn-small btn-primary" onclick="createRoom()">
-          + CREATE
-        </button>
+    <div class="content-box">
+      <div class="lobby-header">
+        <h2>Game Rooms</h2>
+        <div class="lobby-actions">
+          <button class="btn btn-small btn-secondary" onclick="goToHistory()">HISTORY</button>
+          <button class="btn btn-small btn-primary" onclick="createRoom()">+ CREATE</button>
+        </div>
+      </div>
+
+      <div class="room-list">
+        <!-- Rooms loaded dynamically from API -->
+      </div>
+
+      <div class="no-rooms hidden">
+        <p>No active rooms</p>
+        <p class="hint">Create one to start playing!</p>
       </div>
     </div>
 
-    <div class="room-list">
-      <!-- Rooms loaded dynamically from API -->
-    </div>
-
-    <div class="no-rooms hidden">
-      <p>No active rooms</p>
-      <p class="hint">Create one to start playing!</p>
+    <div class="lobby-footer">
+      <p>Session clears when you close the tab</p>
     </div>
   </div>
 
-  <div class="lobby-footer">
-    <p>Session clears when you close the tab</p>
-  </div>
-</div>
-
-<!-- Scripts at END only - ONCE! -->
-<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-<script src="app.js"></script>
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
