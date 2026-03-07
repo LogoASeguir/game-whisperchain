@@ -110,70 +110,47 @@ def mutate_message(message, signal_strength):
 def calculate_accuracy(original, typed, blank_positions=None):
     """
     Compare typed message against ORIGINAL message.
-
-    Args:
-        original: The original message
-        typed: What the player typed
-        blank_positions: Set/list of positions that were blanks (optional)
-                        If None, compares ALL positions (backwards compatible)
-
-    Returns accuracy percentage (0-100).
-    
-    When blank_positions is provided:
-    - Only counts the positions that were blanks
-    - Player only gets judged on letters they had to fill in
+    Only counts positions that were blanks.
     """
     if not original:
         return 100.0 if not typed else 0.0
 
-    # Normalize: compare character by character
     orig_chars = list(original.lower())
     typed_chars = list(typed.lower())
 
-    # Handle length mismatch
-    if len(orig_chars) != len(typed_chars):
-        # Calculate based on shorter length, penalize for mismatch
-        min_len = min(len(orig_chars), len(typed_chars))
-        max_len = max(len(orig_chars), len(typed_chars))
-        length_penalty = min_len / max_len if max_len > 0 else 0
+    # If no blank_positions provided, compare all
+    if blank_positions is None:
+        blank_set = set(range(len(orig_chars)))
     else:
-        length_penalty = 1.0
-        min_len = len(orig_chars)
+        blank_set = set(blank_positions)
 
-    if min_len == 0:
-        return 0.0
-
+    # Only compare positions that exist in BOTH strings
+    max_pos = min(len(orig_chars), len(typed_chars))
+    
     correct = 0
     total = 0
 
-    # Convert blank_positions to set for fast lookup
-    blank_set = set(blank_positions) if blank_positions is not None else None
-
-    for i in range(min_len):
-        orig_char = orig_chars[i]
-        typed_char = typed_chars[i]
-
-        # Skip spaces in counting
-        if orig_char == ' ':
+    for i in blank_set:
+        # Skip if position is out of range
+        if i >= max_pos:
+            total += 1  # Count as wrong (missing)
             continue
-
-        # If blank_positions provided, ONLY count those positions
-        if blank_set is not None:
-            if i not in blank_set:
-                continue  # Skip - this letter was already visible
+        
+        # Skip spaces
+        if orig_chars[i] == ' ':
+            continue
 
         total += 1
 
-        # Underscore = wrong, otherwise compare
-        if typed_char != '_' and orig_char == typed_char:
+        # Compare characters
+        if orig_chars[i] == typed_chars[i]:
             correct += 1
 
     if total == 0:
         return 100.0
 
-    accuracy = (correct / total) * 100 * length_penalty
+    accuracy = (correct / total) * 100
     return round(accuracy, 1)
-
 
 # ============================================
 # SIGNAL STRENGTH UPDATES
