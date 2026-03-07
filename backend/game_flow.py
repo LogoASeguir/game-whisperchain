@@ -237,7 +237,7 @@ class Round:
         Based on their signal strength.
         """
         return mutate_message(self.current_message, player.signal_strength)
-        def submit_typing(self, player, typed_message):
+    def submit_typing(self, player, typed_message):
         """
         Player submits their typed message.
         Returns dict with results or None if not their turn.
@@ -260,11 +260,11 @@ class Round:
 
         # Create chain entry
         entry = ChainEntry(
-            player=player,
-            received_message=received,
-            typed_message=typed_message,
-            is_picker=False
-        )
+                player=player,
+                received_message=received,
+                typed_message=typed_message,
+                is_picker=False
+                )
 
         # Calculate accuracy: compare typed vs ORIGINAL, only at blank positions
         entry.calculate_results(self.original_message, blank_positions)
