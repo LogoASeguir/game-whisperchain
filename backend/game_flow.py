@@ -133,15 +133,15 @@ class ChainEntry:
         self.signal_change = 0
         self.new_signal = player.signal_strength
 
-    def calculate_results(self, original_message):
+    def calculate_results(self, original_message, blank_positions=None):
         """Calculate accuracy and signal change."""
         if self.is_picker:
             self.accuracy = 100.0
             self.signal_change = 0
             return
 
-        # Calculate accuracy against what they received
-        self.accuracy = calculate_accuracy(original_message, self.typed_message)
+        # FIX: Calculate accuracy only on blank positions
+        self.accuracy = calculate_accuracy(original_message, self.typed_message, blank_positions)
 
         # Calculate signal change
         old_signal = self.player.signal_strength
@@ -252,6 +252,12 @@ class Round:
         # What they received (mutated)
         received = self.get_message_for_player(player)
 
+        # FIX: Find which positions were blanks (underscores)
+        blank_positions = set()
+        for i, char in enumerate(received):
+            if char == '_':
+                blank_positions.add(i)
+
         # Create chain entry
         entry = ChainEntry(
             player=player,
@@ -259,7 +265,9 @@ class Round:
             typed_message=typed_message,
             is_picker=False
         )
-        entry.calculate_results(self.current_message)
+
+        # FIX: Pass blank_positions to calculate_results
+        entry.calculate_results(self.current_message, blank_positions)
         self.chain.append(entry)
 
         # Update current message for next player
@@ -451,6 +459,10 @@ class GameRoom:
         Returns: dict with round info for clients
         """
         self.current_round += 1
+
+        # FIX: Update total_rounds for infinite rounds
+        if self.current_round > self.total_rounds:
+            self.total_rounds = self.current_round
 
         # Reset players for new round
         for p in self.players:
