@@ -375,18 +375,16 @@ def on_disconnect():
                     print(f"[GAME] Not enough players, ending game but keeping room for {len(room.players)} remaining")
                     end_game(code, reset_to_lobby=True)
 
-        # NOW delete temporary user from database (session ended)
-        if is_temporary:
-            delete_user_from_db(uid, username)
-            print(f"[SESSION END] Deleted temp user {username} from DB")
+                # TEMP USERS: mark as disconnected, keep in DB while browser session may reconnect
+                if is_temporary:
+                    users[uid]['sid'] = None
+                    users[uid]['last_seen'] = time.time()  # optional, for cleanup
+                    print(f"[WS] TEMP USER {username} disconnected, will persist in DB")
 
-        # Remove from memory
-        del users[uid]
-        print(f"[USER-] {username} removed from memory")
-
-    if sid in sid_to_user:
-        del sid_to_user[sid]
-
+                # Remove from memory only if permanent user
+                if not is_temporary:
+                    del users[uid]
+                    print(f"[USER-] {username} removed from memory")
 
 # ============================================
 # WEBSOCKET: AUTH
@@ -1047,15 +1045,20 @@ def end_game(code, reset_to_lobby=False):
         # Delete room after short delay
         socketio.start_background_task(delete_room_delayed, code)
 
-
 def delete_room_delayed(code):
-    """Delete room after a short delay."""
+    """Delete room after a short delay, clearing player references."""
     socketio.sleep(2)
-    deleted = room_manager.delete_room(code)
-    if deleted:
-        print(f"[ROOM-] {code} (deleted)")
+    room = room_manager.get_room(code)
+    if room:
+        # Clear all remaining players' room references
+        for p in room.players:
+            if p.user_id in users:
+                users[p.user_id]['room'] = None
+        deleted = room_manager.delete_room(code)
+        print(f"[ROOM-] {code} deleted after end_game")
     else:
-        print(f"[ROOM-] {code} (already deleted)")
+        print(f"[ROOM-] {code} already deleted")
+
 # ============================================
 # STATIC FILES
 # ============================================
@@ -1125,3 +1128,4 @@ if __name__ == '__main__':
         debug=config.DEBUG,
         allow_unsafe_werkzeug=True
     )
+
