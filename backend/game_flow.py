@@ -236,7 +236,10 @@ class Round:
         Get the mutated message that a player should see.
         ALWAYS mutate from ORIGINAL message, not corrupted current_message.
         """
-        return mutate_message(self.original_message, player.signal_strength)
+        mutation = mutate_message(self.original_message, player.signal_strength)
+        self.last_mutation = mutation
+
+        return mutation
 
     def submit_typing(self, player, typed_message):
         """
@@ -250,7 +253,7 @@ class Round:
             return None
 
         # What they received (mutated from ORIGINAL)
-        received = self.get_message_for_player(player)
+        received = self.last_mutation
 
         # Find which positions were blanks (underscores)
         blank_positions = set()
