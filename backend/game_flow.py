@@ -467,22 +467,21 @@ class GameRoom:
     rotated = self.players[picker_index:] + self.players[:picker_index]
 
     # Create new round
-    self.active_round = Round(
+        self.active_round = Round(
             round_number=self.current_round,
             players=rotated,
             picker_index=picker_index
-            )
+        )
 
-    return {
+        return {
             'round': self.current_round,
-            'total_rounds': self.total_rounds,  # This updates dynamically now
+            'total_rounds': self.total_rounds,
             'starter': self.active_round.picker.username,
             'starter_user_id': self.active_round.picker.user_id,
             'max_words': self.active_round.max_words,
             'players_order': self.active_round.get_players_order(),
             'word_options': get_random_words(12)
-            }
-
+        }
     def get_turn_info(self):
         """
         Get current turn information.
