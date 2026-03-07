@@ -445,53 +445,43 @@ class GameRoom:
         self.current_round = 0
 
         return True
-
     def start_round(self):
-        """
-        Start a new round.
-        Returns: dict with round info for clients
-        """
-        self.current_round += 1
+    """
+    Start a new round.
+    Returns: dict with round info for clients
+    """
+    self.current_round += 1
+    
+    # Update total_rounds to match (for display purposes)
+    if self.current_round > self.total_rounds:
+        self.total_rounds = self.current_round
 
-        # Reset players for new round
-        for p in self.players:
-            p.reset_for_round()
+    # Reset players for new round
+    for p in self.players:
+        p.reset_for_round()
 
-        # Rotate players so picker changes each round
-        picker_index = (self.current_round - 1) % len(self.players)
+    # Rotate players so picker changes each round
+    picker_index = (self.current_round - 1) % len(self.players)
 
-        # Create rotated player list (picker first)
-        rotated = self.players[picker_index:] + self.players[:picker_index]
+    # Create rotated player list (picker first)
+    rotated = self.players[picker_index:] + self.players[:picker_index]
 
-        # Create new round
-        self.active_round = Round(
-            round_number=self.current_round,
-            players=rotated,
-            picker_index=picker_index
-        )
+    # Create new round
+    self.active_round = Round(
+        round_number=self.current_round,
+        players=rotated,
+        picker_index=picker_index
+    )
 
-        return {
-            'round': self.current_round,
-            'total_rounds': self.total_rounds,
-            'starter': self.active_round.picker.username,
-            'starter_user_id': self.active_round.picker.user_id,
-            'max_words': self.active_round.max_words,
-            'players_order': self.active_round.get_players_order(),
-            'word_options': get_random_words(12)
-        }
-
-    def submit_words(self, user_id, words):
-        """
-        Picker submits their chosen words.
-        Returns: message string or None if invalid
-        """
-        if not self.active_round:
-            return None
-
-        if self.active_round.picker.user_id != user_id:
-            return None
-
-        return self.active_round.submit_words(words)
+    return {
+        'round': self.current_round,
+        'total_rounds': self.total_rounds,  # This updates dynamically now
+        'starter': self.active_round.picker.username,
+        'starter_user_id': self.active_round.picker.user_id,
+        'max_words': self.active_round.max_words,
+        'players_order': self.active_round.get_players_order(),
+        'word_options': get_random_words(12)
+    }
 
     def get_turn_info(self):
         """

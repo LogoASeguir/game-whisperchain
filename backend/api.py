@@ -873,44 +873,30 @@ def count_current_votes(room):
 
 def proceed_after_votes(code, room):
     """Handle game progression after all votes are in."""
-    print(f"[VOTE] ===== PROCEED AFTER VOTES =====")
-    print(f"[VOTE] Room: {code}")
-    print(f"[VOTE] Current Round: {room.current_round}")
-    print(f"[VOTE] Total Rounds: {room.total_rounds}")
-    print(f"[VOTE] Players Remaining: {len(room.players)}")
-    print(f"[VOTE] Room Status: {room.status}")
+    print(f"[VOTE] Proceeding - Round {room.current_round}/{room.total_rounds}")
+    print(f"[VOTE] Players remaining: {len(room.players)}")
 
     # Reset votes for next round
     if room.active_round:
         room.active_round.voted_players = set()
         room.active_round.votes = {'yes': 0, 'no': 0}
 
-    # Check scenarios (IN ORDER OF PRIORITY)
-    
-    # Scenario 1: Room is empty (everyone left)
-    if not room.players or len(room.players) == 0:
-        print(f"[VOTE] Room empty, deleting")
-        room_manager.delete_room(code)
-        print(f"[ROOM-] {code} (empty after votes)")
+    # Check scenarios
+    if not room.players:
+        print(f"[VOTE] Room empty, ending game")
+        end_game(code)
         return
 
-    # Scenario 2: Not enough players to continue
     if len(room.players) < MIN_PLAYERS:
         print(f"[VOTE] Not enough players ({len(room.players)} < {MIN_PLAYERS}), ending game")
         end_game(code, reset_to_lobby=True)
         return
 
-    # Scenario 3: All rounds are complete (FIXED CONDITION!)
-    if room.current_round >= room.total_rounds:
-        print(f"[VOTE] All rounds complete ({room.current_round} >= {room.total_rounds}), ending game")
-        end_game(code, reset_to_lobby=True)  # ← CHANGED: Always reset to lobby so room stays alive
-        return
-
-    # Scenario 4: Continue to next round
-    print(f"[VOTE] Continuing to round {room.current_round + 1}/{room.total_rounds}")
+    # REMOVED: No round limit check! Game continues FOREVER until players leave!
+    # Just start the next round
+    print(f"[VOTE] Starting next round (round {room.current_round + 1})")
     socketio.sleep(2)
     start_round(code)
-
 
 # ============================================
 # GAME END
