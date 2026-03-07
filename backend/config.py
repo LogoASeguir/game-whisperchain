@@ -1,4 +1,3 @@
-# config.py
 """
 Configuration management for WhisperChain.
 Loads from environment variables with fallbacks.
@@ -17,16 +16,12 @@ class Config:
     SECRET_KEY = os.environ.get('FLASK_SECRET_KEY', 'dev-secret-key-change-in-production')
     DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
     
-    # Database (local)
+    # Database
     DB_HOST = os.environ.get('DB_HOST', 'localhost')
     DB_PORT = int(os.environ.get('DB_PORT', 5432))
     DB_NAME = os.environ.get('DB_NAME', 'whisperchain')
     DB_USER = os.environ.get('DB_USER', 'RDev')
     DB_PASSWORD = os.environ.get('DB_PASSWORD', 'dev123')
-    
-    # Database Read-Only User
-    DB_READONLY_USER = os.environ.get('DB_READONLY_USER', 'game_readonly')
-    DB_READONLY_PASSWORD = os.environ.get('DB_READONLY_PASSWORD', 'readonly_pass')
     
     # Admin Authentication
     ADMIN_TOKEN = os.environ.get('ADMIN_TOKEN', 'change-me-in-production')
@@ -37,8 +32,8 @@ class Config:
     RATELIMIT_ENABLED = True
     
     # WebSocket
-    SOCKETIO_MESSAGE_QUEUE = None  # Can add Redis later
-    SOCKETIO_CORS_ALLOWED_ORIGINS = "*" if DEBUG else os.environ.get('ALLOWED_ORIGINS', '').split(',')
+    SOCKETIO_MESSAGE_QUEUE = None
+    SOCKETIO_CORS_ALLOWED_ORIGINS = "*"
     
     # Game Settings
     MAX_PLAYERS_PER_ROOM = 10
@@ -50,41 +45,28 @@ class Config:
     MAX_USERNAME_LENGTH = 20
     MIN_USERNAME_LENGTH = 3
     MAX_MESSAGE_LENGTH = 1000
-    MAX_PAYLOAD_SIZE = 50000  # 50KB
+    MAX_PAYLOAD_SIZE = 50000
     BAN_AFTER_ATTEMPTS = 3
     
     @classmethod
     def get_db_url(cls):
         """Get database connection URL"""
         return f"postgresql://{cls.DB_USER}:{cls.DB_PASSWORD}@{cls.DB_HOST}:{cls.DB_PORT}/{cls.DB_NAME}"
-    
-    @classmethod
-    def get_readonly_db_url(cls):
-        """Get read-only database connection URL"""
-        return f"postgresql://{cls.DB_READONLY_USER}:{cls.DB_READONLY_PASSWORD}@{cls.DB_HOST}:{cls.DB_PORT}/{cls.DB_NAME}"
-
 
 class ProductionConfig(Config):
     """Production configuration"""
     DEBUG = False
     RATELIMIT_ENABLED = True
-    
-    # Use Supabase in production
-    SUPABASE_URL = os.environ.get('SUPABASE_URL')
-    SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
-    SUPABASE_DB_URL = os.environ.get('SUPABASE_DB_URL')
-
+    SOCKETIO_CORS_ALLOWED_ORIGINS = os.environ.get('ALLOWED_ORIGINS', '*').split(',')
 
 class DevelopmentConfig(Config):
     """Development configuration"""
     DEBUG = True
 
-
 class TestingConfig(Config):
     """Testing configuration"""
     TESTING = True
     DB_NAME = 'whisperchain_test'
-
 
 # Select config based on environment
 config = {

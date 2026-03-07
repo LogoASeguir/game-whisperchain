@@ -23,10 +23,18 @@ config = get_config()
 
 app = Flask(__name__, static_folder='frontend', static_url_path='')
 app.config['SECRET_KEY'] = config.SECRET_KEY
-CORS(app)
-
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
-
+CORS(app, resources={
+    r"/*": {
+        "origins": config.SOCKETIO_CORS_ALLOWED_ORIGINS,
+        "methods": ["GET", "POST", "DELETE"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
+socketio = SocketIO(
+    app, 
+    cors_allowed_origins=config.SOCKETIO_CORS_ALLOWED_ORIGINS,
+    async_mode='eventlet'  # Changed from 'threading' to match requirements.txt
+)
 # ============================================
 # STATE
 # ============================================
@@ -460,7 +468,6 @@ def on_join(data):
     socketio.emit('players', {'players': player_list}, room=code)
     emit('room_state', {'code': code, 'players': player_list, 'status': room.status})
 
-
 @socketio.on('leave')
 def on_leave(data):
     sid = request.sid
@@ -487,25 +494,26 @@ def on_leave(data):
             room.remove_player(uid)
             leave_room(code)
 
+            remaining = len(room.players)
+            print(f"[LEAVE] {remaining} players remaining in {code}")
+
             socketio.emit('player_left', {'players': room.get_player_list()}, room=code)
 
-            # Handle different scenarios
-            if not room.players:
-                # Room is completely empty
-                if room.status == 'playing':
-                    end_game(code)
-                else:
-                    room_manager.delete_room(code)
-                    print(f"[ROOM-] {code} (empty)")
-
-            elif room.status == 'playing' and len(room.players) < MIN_PLAYERS:
-                # Game was in progress but not enough players remaining
-                print(f"[GAME] Not enough players, ending game but resetting room to lobby")
+            # Handle different scenarios based on remaining players
+            if remaining == 0:
+                # Everyone left - delete room immediately
+                print(f"[LEAVE] Room empty, deleting immediately")
+                room_manager.delete_room(code)
+                print(f"[ROOM-] {code} (empty)")
+                
+            elif room.status == 'playing' and remaining < MIN_PLAYERS:
+                # Game was in progress but not enough players
+                print(f"[LEAVE] Not enough players during game, ending and resetting")
                 end_game(code, reset_to_lobby=True)
 
-    # Clear room reference but DON'T delete user
+    # Clear room reference
     user['room'] = None
-    print(f"[LEAVE] {user['username']} left room (user still in session)")
+    print(f"[LEAVE] {user['username']} cleared room reference")
 
 
 # ============================================
@@ -863,37 +871,45 @@ def count_current_votes(room):
 
     return yes_count, no_count, voted_count
 
-
 def proceed_after_votes(code, room):
     """Handle game progression after all votes are in."""
-    print(f"[VOTE] Proceeding - Round {room.current_round}/{room.total_rounds}")
+    print(f"[VOTE] ===== PROCEED AFTER VOTES =====")
+    print(f"[VOTE] Room: {code}")
+    print(f"[VOTE] Current Round: {room.current_round}")
+    print(f"[VOTE] Total Rounds: {room.total_rounds}")
+    print(f"[VOTE] Players Remaining: {len(room.players)}")
+    print(f"[VOTE] Room Status: {room.status}")
 
     # Reset votes for next round
     if room.active_round:
         room.active_round.voted_players = set()
         room.active_round.votes = {'yes': 0, 'no': 0}
 
-    # Check scenarios
-    if not room.players:
-        # Everyone left during voting
-        print(f"[VOTE] Room empty, ending game")
-        end_game(code)
+    # Check scenarios (IN ORDER OF PRIORITY)
+    
+    # Scenario 1: Room is empty (everyone left)
+    if not room.players or len(room.players) == 0:
+        print(f"[VOTE] Room empty, deleting")
+        room_manager.delete_room(code)
+        print(f"[ROOM-] {code} (empty after votes)")
         return
 
+    # Scenario 2: Not enough players to continue
     if len(room.players) < MIN_PLAYERS:
-        # Not enough players to continue
-        print(f"[VOTE] Not enough players ({len(room.players)} < {MIN_PLAYERS}), ending game and resetting")
+        print(f"[VOTE] Not enough players ({len(room.players)} < {MIN_PLAYERS}), ending game")
         end_game(code, reset_to_lobby=True)
         return
 
-    # Check if more rounds to play
-    if room.current_round < room.total_rounds:
-        print(f"[VOTE] Starting round {room.current_round + 1}")
-        socketio.sleep(2)
-        start_round(code)
-    else:
-        print(f"[VOTE] Game complete!")
-        end_game(code)
+    # Scenario 3: All rounds are complete (FIXED CONDITION!)
+    if room.current_round >= room.total_rounds:
+        print(f"[VOTE] All rounds complete ({room.current_round} >= {room.total_rounds}), ending game")
+        end_game(code, reset_to_lobby=True)  # ← CHANGED: Always reset to lobby so room stays alive
+        return
+
+    # Scenario 4: Continue to next round
+    print(f"[VOTE] Continuing to round {room.current_round + 1}/{room.total_rounds}")
+    socketio.sleep(2)
+    start_round(code)
 
 
 # ============================================
@@ -909,12 +925,18 @@ def end_game(code, reset_to_lobby=False):
     """
     room = room_manager.get_room(code)
     if not room:
+        print(f"[GAME END] Room {code} not found")
         return
 
     # PREVENT DOUBLE-ENDING
     if room.status == 'finished':
         print(f"[GAME END] {code} already finished, skipping duplicate call")
         return
+
+    print(f"[GAME END] ===== ENDING GAME =====")
+    print(f"[GAME END] Code: {code}")
+    print(f"[GAME END] Reset to lobby: {reset_to_lobby}")
+    print(f"[GAME END] Players remaining: {len(room.players)}")
 
     # Mark as finished IMMEDIATELY to prevent race conditions
     room.status = 'finished'
@@ -933,9 +955,8 @@ def end_game(code, reset_to_lobby=False):
 
         # Build rankings from all original players
         rankings = []
-        player_ids = []  # Track player IDs for history
+        player_ids = []
         for p in room.original_players:
-            # Use current signal if still in game, otherwise use stored signal
             signal = current_signals.get(p['user_id'], p['signal'])
             rankings.append({
                 'user_id': p['user_id'],
@@ -944,30 +965,26 @@ def end_game(code, reset_to_lobby=False):
             })
             player_ids.append(p['user_id'])
 
-        # Sort by signal descending
         rankings.sort(key=lambda x: x['signal'], reverse=True)
 
-        # Add ranks
         for i, r in enumerate(rankings):
             r['rank'] = i + 1
     else:
         rankings = final_results['rankings']
         player_ids = [r['user_id'] for r in rankings]
 
-    # Save signals to user memory for ALL players (not just those remaining)
+    # Save signals to user memory
     for r in rankings:
         uid = r['user_id']
         if uid in users:
             users[uid]['signal'] = r['signal']
             print(f"[SIGNAL] {r['username']} saved: {r['signal']}%")
 
-    print(f"[GAME END] {code} - {num_players} players (reset_to_lobby={reset_to_lobby})")
+    print(f"[GAME END] Final rankings for {num_players} players:")
     for r in rankings:
         print(f"  #{r['rank']} {r['username']}: {r['signal']}%")
 
-    # ========================================
-    # SAVE GAME TO DATABASE
-    # ========================================
+    # Save to database
     game_data = {
         'room_code': code,
         'num_players': num_players,
@@ -977,8 +994,9 @@ def end_game(code, reset_to_lobby=False):
     }
 
     game_id = save_game_to_db(game_data)
+    print(f"[GAME END] Saved to DB with ID: {game_id}")
 
-    # Store game_id for ALL original players (not just those remaining)
+    # Store game_id for session tracking
     if game_id and hasattr(room, 'original_players'):
         for p in room.original_players:
             uid = p['user_id']
@@ -986,21 +1004,18 @@ def end_game(code, reset_to_lobby=False):
                 if 'session_games' not in users[uid]:
                     users[uid]['session_games'] = []
                 users[uid]['session_games'].append(game_id)
-                print(f"[SESSION] User {p['username']} (uid={uid}) can access game {game_id}")
 
-    # ========================================
+    # Send game_end event to all remaining players
+    socketio.emit('game_end', {
+        'rankings': rankings,
+        'rounds': room.rounds,
+        'num_players': num_players,
+        'game_id': game_id
+    }, room=code)
 
     if reset_to_lobby:
-        # SCENARIO: Some players remain, reset room to lobby
-        print(f"[RESET] Resetting room {code} to waiting state with {len(room.players)} players")
-
-        # Send game_end event to remaining players
-        socketio.emit('game_end', {
-            'rankings': rankings,
-            'rounds': room.rounds,
-            'num_players': num_players,
-            'game_id': game_id
-        }, room=code)
+        # Keep room alive, reset to waiting state
+        print(f"[RESET] Resetting room {code} to waiting state")
 
         socketio.sleep(5)  # Show results for 5 seconds
 
@@ -1031,32 +1046,30 @@ def end_game(code, reset_to_lobby=False):
             'message': 'Game ended. Room reset to lobby.'
         }, room=code)
 
-        print(f"[ROOM] {code} reset to waiting state")
+        print(f"[ROOM] {code} reset to waiting state with {len(room.players)} players")
 
     else:
-        # SCENARIO: Room is empty or should be deleted
-        socketio.emit('game_end', {
-            'rankings': rankings,
-            'rounds': room.rounds,
-            'num_players': num_players,
-            'game_id': game_id
-        }, room=code)
-
-        # Clear room references for remaining players
+        # Delete room completely
+        print(f"[GAME END] Deleting room {code}")
+        
+        # Clear room references for any remaining players
         for p in room.get_player_list():
             uid = p['user_id']
             if uid in users:
                 users[uid]['room'] = None
 
-        socketio.start_background_task(delete_room_delayed, code
-                                       )
+        # Delete room after short delay
+        socketio.start_background_task(delete_room_delayed, code)
+
+
 def delete_room_delayed(code):
     """Delete room after a short delay."""
     socketio.sleep(2)
-    room_manager.delete_room(code)
-    print(f"[ROOM-] {code} (game finished)")
-
-
+    deleted = room_manager.delete_room(code)
+    if deleted:
+        print(f"[ROOM-] {code} (deleted)")
+    else:
+        print(f"[ROOM-] {code} (already deleted)")
 # ============================================
 # STATIC FILES
 # ============================================
@@ -1073,6 +1086,30 @@ def static_files(path):
         return app.send_static_file('index.html')
 
 
+
+
+def cleanup_orphaned_rooms():
+    """Background task to cleanup empty rooms every 5 minutes."""
+    while True:
+        socketio.sleep(300)  # 5 minutes
+        
+        print("[CLEANUP] Checking for orphaned rooms...")
+        
+        # Find empty rooms
+        empty_rooms = []
+        for code, room in list(room_manager.rooms.items()):
+            if len(room.players) == 0:
+                empty_rooms.append(code)
+        
+        # Delete them
+        for code in empty_rooms:
+            room_manager.delete_room(code)
+            print(f"[CLEANUP] Deleted empty room {code}")
+        
+        if empty_rooms:
+            print(f"[CLEANUP] Removed {len(empty_rooms)} empty rooms")
+        else:
+            print(f"[CLEANUP] No orphaned rooms found")
 # ============================================
 # START SERVER
 # ============================================
@@ -1088,14 +1125,17 @@ if __name__ == '__main__':
     init_db()
     cleanup_temp_users()
 
+    # Start background cleanup task
+    socketio.start_background_task(cleanup_orphaned_rooms)
+
     port = int(os.environ.get('PORT', 5000))
     print(f"URL: http://localhost:{port}")
     print("=" * 50)
 
     socketio.run(
-            app,
-            host='0.0.0.0',
-            port=port,
-            debug=True,
-            allow_unsafe_werkzeug=True
-            )
+        app,
+        host='0.0.0.0',
+        port=port,
+        debug=config.DEBUG,
+        allow_unsafe_werkzeug=True
+    )

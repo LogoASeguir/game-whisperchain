@@ -1,43 +1,54 @@
-# Environment variables (NEVER commit!)
-.env
-*.env
-!.env.example
-
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-virtual/
 venv/
+virtual/
+.venv/
 env/
+ENV/
+
+# Environment variables (IMPORTANT - don't commit secrets!)
+.env
+*.env
 
 # Database
-db/data/
+*.sql
 *.db
-*.sqlite
-
-# Logs
-*.log
-*.out
+*.sqlite3
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Testing
+# Docker
+docker-compose.override.yml
+
+# Logs
+*.log
+logs/
+
+# Backups
+*.tar
+*.tar.gz
+*.zip
+*.backup
+
+# Test
 .pytest_cache/
 .coverage
 htmlcov/
 
-# Production
-secrets/
-*.pem
-*.key
+# Build
+dist/
+build/
+*.egg-info/
