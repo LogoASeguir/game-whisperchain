@@ -237,7 +237,7 @@ class Round:
         Based on their signal strength.
         """
         return mutate_message(self.current_message, player.signal_strength)
-    def submit_typing(self, player, typed_message):
+        def submit_typing(self, player, typed_message):
         """
         Player submits their typed message.
         Returns dict with results or None if not their turn.
@@ -248,10 +248,11 @@ class Round:
         if self.current_player != player:
             return None
 
-        # What they received (mutated)
+        # What they received (mutated from current_message - for display only)
         received = self.get_message_for_player(player)
 
-        # FIX: Find which positions were blanks (underscores)
+        # Get blank positions by comparing original vs received
+        # A position is "blank" if received has '_' at that position
         blank_positions = set()
         for i, char in enumerate(received):
             if char == '_':
@@ -259,13 +260,13 @@ class Round:
 
         # Create chain entry
         entry = ChainEntry(
-                player=player,
-                received_message=received,
-                typed_message=typed_message,
-                is_picker=False
-                )
+            player=player,
+            received_message=received,
+            typed_message=typed_message,
+            is_picker=False
+        )
 
-        # FIX: Compare against ORIGINAL message, not current_message!
+        # Calculate accuracy: compare typed vs ORIGINAL, only at blank positions
         entry.calculate_results(self.original_message, blank_positions)
         self.chain.append(entry)
 
@@ -280,7 +281,6 @@ class Round:
             self.status = 'revealing'
 
         return entry.to_dict()
-
     def is_complete(self):
         """Check if all players have had their turn."""
         return self.current_turn >= len(self.players)

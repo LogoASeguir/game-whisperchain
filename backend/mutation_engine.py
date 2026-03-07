@@ -109,49 +109,48 @@ def mutate_message(message, signal_strength):
 # ============================================
 def calculate_accuracy(original, typed, blank_positions=None):
     """
-    Compare typed message against ORIGINAL message.
-    Only counts positions that were blanks.
-    """
-    if not original:
-        return 100.0 if not typed else 0.0
-
-    orig_chars = list(original.lower())
-    typed_chars = list(typed.lower())
-
-    # If no blank_positions provided, compare all
-    if blank_positions is None:
-        blank_set = set(range(len(orig_chars)))
-    else:
-        blank_set = set(blank_positions)
-
-    # Only compare positions that exist in BOTH strings
-    max_pos = min(len(orig_chars), len(typed_chars))
+    Compare typed vs original, ONLY at blank positions.
     
+    Args:
+        original: The original correct message
+        typed: What the player typed
+        blank_positions: Set of positions that were blanks (required for accurate scoring)
+    
+    Returns: accuracy percentage (0-100)
+    """
+    if not original or not typed:
+        return 0.0
+
+    # If no blanks specified, compare everything (fallback)
+    if blank_positions is None or len(blank_positions) == 0:
+        return 100.0
+
+    original = original.lower()
+    typed = typed.lower()
+
     correct = 0
     total = 0
 
-    for i in blank_set:
-        # Skip if position is out of range
-        if i >= max_pos:
-            total += 1  # Count as wrong (missing)
+    for pos in blank_positions:
+        # Skip if position out of range
+        if pos >= len(original) or pos >= len(typed):
+            total += 1  # Count as wrong
             continue
-        
+
         # Skip spaces
-        if orig_chars[i] == ' ':
+        if original[pos] == ' ':
             continue
 
         total += 1
 
-        # Compare characters
-        if orig_chars[i] == typed_chars[i]:
+        # Check if player got it right
+        if typed[pos] == original[pos]:
             correct += 1
 
     if total == 0:
         return 100.0
 
-    accuracy = (correct / total) * 100
-    return round(accuracy, 1)
-
+    return round((correct / total) * 100, 1)
 # ============================================
 # SIGNAL STRENGTH UPDATES
 # ============================================
