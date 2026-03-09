@@ -13,11 +13,11 @@
 ---
 
 ## What It Was For
-Whisperchain is an online multiplayer-first meant to learn about full stack, production and distribution.
+Whisperchain is an online multiplayer-first project meant to teach full-stack development, production, and deployment.
 
 ## It will be available for the next 27 days (from today 9 March 2026 as it is using a Railway free server)
 You may try it through the following link:
-## game-whisperchain-production.up.railway.app ##
+[game-whisperchain on Railway](https://game-whisperchain-production.up.railway.app)
 
 ---
 
@@ -50,19 +50,20 @@ docker-compose.yml
 ```
 
 ## Project Status
-Whisperchain will end its course here, as there is more to be learned. Future updates could include:
+Whisperchain will end its course here, as there is more to be learned.
 ```
-Community based library for words approved throught contest voting.
-Background redesign (sideways scrolling word bank, for subjective hint and guiding new players with words available)
-Redesign for a better experience, sound and community server (discord)
-Slight readjustments game-design wise (scoring system and more gamemodes)
+Future updates could include:
+- Community-based library for words approved through contest voting
+- Background redesign (sideways scrolling word bank to guide new players)
+- Better UX with sound and a community server (Discord)
+- Game design tweaks (scoring system, more game modes)
 ```
 
 ## Philosophy
-This project was built with the assistance of AI tools as development accelerator and to better understand SQL, Python and API connections where learning Linux navigation and SQL took the bigger portion in the learning curve. 
-Python is getting better understood by each project. 
-Frontend-backend relationship, way more clarified. 
-No deep dive in neither frontend languages yet. Although general understanding is in place! 
+This project was built with AI tools as a development accelerator to better understand SQL, Python, and API connections, while learning Linux navigation.  
+Python is becoming clearer with each project.  
+The frontend-backend relationship is now much more understandable.  
+No deep dive into frontend languages yet, but a general grasp is in place!
 
 ## Author
 Built by [Renato Pedrosa]
