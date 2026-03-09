@@ -7,182 +7,179 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Background word bank -->
-  <div id="word-bank-background"></div>
-
-  <div class="container-wide">
-    <!-- Room Title -->
-    <div class="room-header">
-      <div class="title-display">
-        <h1>ROUND <span id="round-number">1</span></h1>
-      </div>
-      <div class="room-code-badge" id="room-code">???</div>
+<div class="container-wide">
+  <!-- Room Title -->
+  <div class="room-header">
+    <div class="title-display">
+      <h1>ROUND <span id="round-number">1</span></h1>
     </div>
-
-    <!-- SCENE 1: WAITING ROOM -->
-    <div id="scene-waiting" class="scene active">
-      <div class="content-box">
-        <h2>WAITING FOR PLAYERS</h2>
-
-        <div class="players-grid" id="players-grid"></div>
-
-        <!-- Ready Bar -->
-        <div class="ready-bar-container">
-          <div class="ready-bar">
-            <div class="ready-fill" id="ready-fill" style="width: 0%;"></div>
-          </div>
-          <span class="ready-text" id="ready-text">0% Ready (need 60%)</span>
-        </div>
-
-        <!-- Starting countdown (hidden until 60%) -->
-        <div id="starting-message" class="starting-message hidden">
-          <span class="starting-text">Game starting in: <strong id="start-countdown">5</strong></span>
-        </div>
-
-        <!-- READY BUTTON -->
-        <div class="action-buttons">
-          <button class="btn btn-primary" id="ready-btn" onclick="toggleReady()">READY</button>
-          <button class="btn btn-secondary" onclick="leaveRoom()">LEAVE</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- SCENE 2: COUNTDOWN -->
-    <div id="scene-countdown" class="scene">
-      <div class="countdown-container">
-        <div class="countdown-circle">
-          <span class="countdown-number" id="countdown-number">3</span>
-        </div>
-        <p class="countdown-text">Get ready!</p>
-      </div>
-    </div>
-
-    <!-- SCENE 3: WORD PICKING -->
-    <div id="scene-picking" class="scene">
-      <div class="content-box">
-        <div class="game-bar">
-          <span class="round-pill" id="round-badge-pick">ROUND 1</span>
-          <div class="timer-circle" id="timer-pick">15</div>
-        </div>
-
-        <h2>PICK <span id="word-count">2</span> WORDS</h2>
-
-        <div class="word-grid" id="word-grid"></div>
-
-        <div class="selected-area">
-          <span class="selected-label">Selected:</span>
-          <div class="selected-bubbles" id="selected-bubbles">-</div>
-        </div>
-
-        <button class="btn btn-primary btn-large" id="send-btn" onclick="submitWords()" disabled>SEND</button>
-      </div>
-    </div>
-
-    <!-- SCENE 4: PLAYER TYPING/CHOOSING -->
-    <div id="scene-typing" class="scene">
-      <div class="content-box typing-box">
-        <div class="typing-player-display">
-          <span class="typing-name" id="typing-player-name">Username</span>
-          <span class="typing-text">is typing<span class="dots"></span></span>
-        </div>
-        <div class="timer-bubble">
-          <span id="timer-typing">10</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- SCENE 5: YOUR TURN - FILL IN BLANKS -->
-    <div id="scene-yourturn" class="scene">
-      <div class="content-box">
-        <div class="game-bar">
-          <span class="round-pill" id="round-badge-turn">ROUND 1</span>
-          <div class="timer-circle" id="timer-turn">15</div>
-        </div>
-
-        <h2 class="your-turn-title">YOUR TURN!</h2>
-
-        <p class="received-label">Fill in the blanks:</p>
-
-        <div class="fill-container" onclick="document.getElementById('hidden-input').focus()">
-          <div class="fill-display" id="fill-display"></div>
-          <input type="text" id="hidden-input" class="hidden-input" autocomplete="off" autocapitalize="off">
-        </div>
-
-        <div class="signal-pill">
-          <span>Your signal: <strong id="your-signal">70%</strong></span>
-        </div>
-
-        <button class="btn btn-primary btn-large" id="pass-btn" onclick="submitTyping()">PASS MESSAGE</button>
-      </div>
-    </div>
-
-    <!-- SCENE 6: MESSAGE PASSED -->
-    <div id="scene-passed" class="scene">
-      <div class="passed-container">
-        <div class="success-circle">
-          <span>✓</span>
-        </div>
-        <h2>MESSAGE PASSED!</h2>
-      </div>
-    </div>
-
-    <!-- SCENE 7: ROUND REVEAL -->
-    <div id="scene-reveal" class="scene">
-      <div class="reveal-container">
-        <h2 id="reveal-title">ORIGINAL MESSAGE</h2>
-        <div class="reveal-card" id="reveal-card">
-          <div class="reveal-player" id="reveal-player">Start</div>
-          <div class="reveal-message" id="reveal-message">"ninja taco"</div>
-          <div class="reveal-score hidden" id="reveal-score">+5%</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SCENE 8: ROUND SCORES + VOTE -->
-    <div id="scene-scores" class="scene">
-      <div class="content-box">
-        <h2 id="scores-title">ROUND 1 SCORES</h2>
-        <div class="round-scores" id="round-scores"></div>
-      </div>
-    </div>
-
-    <!-- SCENE 9: GAME OVER -->
-    <div id="scene-gameover" class="scene">
-      <div class="content-box">
-        <h2>🏆 GAME OVER</h2>
-        <div class="scoreboard" id="scoreboard"></div>
-        <button class="btn btn-primary" onclick="goToLobby()">BACK TO LOBBY</button>
-      </div>
-    </div>
-
-    <!-- Leave Modal -->
-    <div id="leave-modal" class="modal hidden">
-      <div class="modal-box">
-        <h3>Leave Room?</h3>
-        <p>You will leave the game</p>
-        <div class="action-buttons">
-          <button class="btn btn-secondary" onclick="closeModal()">STAY</button>
-          <button class="btn btn-danger" onclick="confirmLeave()">LEAVE</button>
-        </div>
-      </div>
-    </div>
+    <div class="room-code-badge" id="room-code">???</div>
   </div>
 
-  <div id="stay-modal" class="modal hidden">
-    <div class="modal-box">
-      <div class="game-bar" style="justify-content: flex-end; margin-bottom: 16px;">
-        <div class="timer-circle" id="timer-stay">7</div>
+  <!-- SCENE 1: WAITING ROOM -->
+  <div id="scene-waiting" class="scene active">
+    <div class="content-box">
+      <h2>WAITING FOR PLAYERS</h2>
+
+      <div class="players-grid" id="players-grid"></div>
+
+      <!-- Ready Bar -->
+      <div class="ready-bar-container">
+        <div class="ready-bar">
+          <div class="ready-fill" id="ready-fill" style="width: 0%;"></div>
+        </div>
+        <span class="ready-text" id="ready-text">0% Ready (need 60%)</span>
       </div>
-      <h3>Continue Playing?</h3>
-      <p>Next round is starting soon!</p>
+
+      <!-- Starting countdown (hidden until 60%) -->
+      <div id="starting-message" class="starting-message hidden">
+        <span class="starting-text">Game starting in: <strong id="start-countdown">5</strong></span>
+      </div>
+
+      <!-- READY BUTTON -->
       <div class="action-buttons">
-        <button class="btn btn-primary btn-large" onclick="stayInGame()">STAY</button>
-        <button class="btn btn-secondary" onclick="leaveGame()">LEAVE</button>
+        <button class="btn btn-primary" id="ready-btn" onclick="toggleReady()">READY</button>
+        <button class="btn btn-secondary" onclick="leaveRoom()">LEAVE</button>
       </div>
     </div>
   </div>
 
-  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-  <script src="app.js"></script>
+  <!-- SCENE 2: COUNTDOWN -->
+  <div id="scene-countdown" class="scene">
+    <div class="countdown-container">
+      <div class="countdown-circle">
+        <span class="countdown-number" id="countdown-number">3</span>
+      </div>
+      <p class="countdown-text">Get ready!</p>
+    </div>
+  </div>
+
+  <!-- SCENE 3: WORD PICKING -->
+  <div id="scene-picking" class="scene">
+    <div class="content-box">
+      <div class="game-bar">
+        <span class="round-pill" id="round-badge-pick">ROUND 1</span>
+        <div class="timer-circle" id="timer-pick">15</div>
+      </div>
+
+      <h2>PICK <span id="word-count">2</span> WORDS</h2>
+
+      <div class="word-grid" id="word-grid"></div>
+
+      <div class="selected-area">
+        <span class="selected-label">Selected:</span>
+        <div class="selected-bubbles" id="selected-bubbles">-</div>
+      </div>
+
+      <button class="btn btn-primary btn-large" id="send-btn" onclick="submitWords()" disabled>SEND</button>
+    </div>
+  </div>
+
+  <!-- SCENE 4: PLAYER TYPING/CHOOSING -->
+  <div id="scene-typing" class="scene">
+    <div class="content-box typing-box">
+      <div class="typing-player-display">
+        <span class="typing-name" id="typing-player-name">Username</span>
+        <span class="typing-text">is typing<span class="dots"></span></span>
+      </div>
+      <div class="timer-bubble">
+        <span id="timer-typing">10</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCENE 5: YOUR TURN - FILL IN BLANKS -->
+  <div id="scene-yourturn" class="scene">
+    <div class="content-box">
+      <div class="game-bar">
+        <span class="round-pill" id="round-badge-turn">ROUND 1</span>
+        <div class="timer-circle" id="timer-turn">15</div>
+      </div>
+
+      <h2 class="your-turn-title">YOUR TURN!</h2>
+
+      <p class="received-label">Fill in the blanks:</p>
+
+      <div class="fill-container" onclick="document.getElementById('hidden-input').focus()">
+        <div class="fill-display" id="fill-display"></div>
+        <input type="text" id="hidden-input" class="hidden-input" autocomplete="off" autocapitalize="off">
+      </div>
+
+      <div class="signal-pill">
+        <span>Your signal: <strong id="your-signal">70%</strong></span>
+      </div>
+
+      <button class="btn btn-primary btn-large" id="pass-btn" onclick="submitTyping()">PASS MESSAGE</button>
+    </div>
+  </div>
+
+  <!-- SCENE 6: MESSAGE PASSED -->
+  <div id="scene-passed" class="scene">
+    <div class="passed-container">
+      <div class="success-circle">
+        <span>✓</span>
+      </div>
+      <h2>MESSAGE PASSED!</h2>
+    </div>
+  </div>
+
+  <!-- SCENE 7: ROUND REVEAL -->
+  <div id="scene-reveal" class="scene">
+    <div class="reveal-container">
+      <h2 id="reveal-title">ORIGINAL MESSAGE</h2>
+      <div class="reveal-card" id="reveal-card">
+        <div class="reveal-player" id="reveal-player">Start</div>
+        <div class="reveal-message" id="reveal-message">"ninja taco"</div>
+        <div class="reveal-score hidden" id="reveal-score">+5%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCENE 8: ROUND SCORES + VOTE -->
+  <div id="scene-scores" class="scene">
+    <div class="content-box">
+      <h2 id="scores-title">ROUND 1 SCORES</h2>
+      <div class="round-scores" id="round-scores"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCENE 9: GAME OVER -->
+  <div id="scene-gameover" class="scene">
+    <div class="content-box">
+      <h2>🏆 GAME OVER</h2>
+      <div class="scoreboard" id="scoreboard"></div>
+      <button class="btn btn-primary" onclick="goToLobby()">BACK TO LOBBY</button>
+    </div>
+  </div>
+
+  <!-- Leave Modal -->
+  <div id="leave-modal" class="modal hidden">
+    <div class="modal-box">
+      <h3>Leave Room?</h3>
+      <p>You will leave the game</p>
+      <div class="action-buttons">
+        <button class="btn btn-secondary" onclick="closeModal()">STAY</button>
+        <button class="btn btn-danger" onclick="confirmLeave()">LEAVE</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="stay-modal" class="modal hidden">
+  <div class="modal-box">
+    <div class="game-bar" style="justify-content: flex-end; margin-bottom: 16px;">
+      <div class="timer-circle" id="timer-stay">7</div>
+    </div>
+    <h3>Continue Playing?</h3>
+    <p>Next round is starting soon!</p>
+    <div class="action-buttons">
+      <button class="btn btn-primary btn-large" onclick="stayInGame()">STAY</button>
+      <button class="btn btn-secondary" onclick="leaveGame()">LEAVE</button>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
