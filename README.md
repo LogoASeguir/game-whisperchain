@@ -57,6 +57,7 @@ Future updates could include:
 - Background redesign (sideways scrolling word bank to guide new players)
 - Better UX with sound and a community server (Discord)
 - Game design tweaks (scoring system, more game modes)
+- Exporting game summaries automatically near database limit to prevent collapse.
 ```
 
 ## Philosophy
@@ -65,6 +66,14 @@ Python is becoming clearer with each project.
 The frontend-backend relationship is now much more understandable.  
 No deep dive into frontend languages yet, but a general grasp is in place!
 
+## Project Considerations
+```
+- Socket layer added to control data flow before DB
+- Rooms, and usernames auto-deleted to preserve space and the purpose of the experience. Game summaries are permanent.
+- DB hosted on Supabase, server on Railway
+- Explored HTTP vs HTTPS basics
+- Frontend-backend-data separation maintained
+```
 ## Author
 Built by [Renato Pedrosa]
 
