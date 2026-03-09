@@ -16,7 +16,7 @@
 Whisperchain is an online multiplayer-first meant to learn about full stack, production and distribution.
 
 ## It will be available for the next 27 days (from today 9 March 2026 as it is using a Railway free server)
-You may try it locally or through the following link:
+You may try it through the following link:
 ## game-whisperchain-production.up.railway.app ##
 
 ---
