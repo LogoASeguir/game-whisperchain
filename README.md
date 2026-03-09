@@ -21,6 +21,16 @@ You may try it through the following link:
 
 ---
 
+## Screenshots & Game Flow
+
+### Login / Lobby
+![Login Lobby](screenshots/Login-Lobby.png)
+
+### In-Game
+![In Game](screenshots/In-game.png)
+
+### End Game
+![End Game](screenshots/End-game.png)
 
 # Installation
 
