@@ -88,7 +88,7 @@ No deep dive into frontend languages yet, but a general grasp is in place!
 ## Author
 Built by [Renato Pedrosa]
 
-Part of a growing experience.
+Part of a growing product development experience.
 
 
 
